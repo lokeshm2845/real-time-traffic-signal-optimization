@@ -1,0 +1,79 @@
+[
+ {
+  "id": "T1",
+  "name": "Signal safety interlocks (no conflicting greens, yellow = 3 s, all-red = 2 s, green >= 3 s)",
+  "result": "PASS",
+  "detail": "270000 simulated steps, 3252 stage changes; conflicts 0, yellow errors 0, all-red errors 0, short greens 0"
+ },
+ {
+  "id": "T2",
+  "name": "Repeatability: identical seed gives identical results",
+  "result": "PASS",
+  "detail": "two 900 s runs compared field by field"
+ },
+ {
+  "id": "T3",
+  "name": "Vehicle conservation (spawned = crossed + still approaching)",
+  "result": "PASS",
+  "detail": "fixed: spawned 856, crossed 812, still approaching 44; adaptive: spawned 858, crossed 809, still approaching 49"
+ },
+ {
+  "id": "T4",
+  "name": "Physical plausibility: no vehicle overlap, no negative speed (near-saturation demand)",
+  "result": "PASS",
+  "detail": "minimum bumper gap 1.20 m, minimum speed 0.00 m/s"
+ },
+ {
+  "id": "T5",
+  "name": "Sensing accuracy: beam-derived zone count vs true vehicles in the 45 m zone",
+  "result": "INFO",
+  "detail": "21600 samples; exact 100.0 %, within +/-1 100.0 %, mean absolute error 0.000 vehicles",
+  "stats": {
+   "n": 21600,
+   "exact": 1,
+   "within1": 1,
+   "mae": 0
+  }
+ },
+ {
+  "id": "T5b",
+  "name": "Sensing accuracy with 5 % of beam events missed",
+  "result": "INFO",
+  "detail": "7200 samples; exact 67.8 %, within +/-1 95.1 %, mean absolute error 0.371 vehicles",
+  "stats": {
+   "n": 7200,
+   "exact": 0.6776388888888889,
+   "within1": 0.9511111111111111,
+   "mae": 0.37125
+  }
+ },
+ {
+  "id": "T6",
+  "name": "Manual override cannot cut a green shorter than 5 s",
+  "result": "PASS",
+  "detail": "override requested after 2 s of green; the yellow started after 5.1 s of green"
+ },
+ {
+  "id": "T7",
+  "name": "Fail-safe recall when every beam reads empty for 10 minutes",
+  "result": "PASS",
+  "detail": "longest green 80.0 s (limit 80 s)"
+ },
+ {
+  "id": "T8",
+  "name": "Emergency pre-emption: time from beacon detection (100 m) to green on its approach",
+  "result": "PASS",
+  "detail": "20/20 trials, mean 2.9 s, worst 10.7 s (includes the 3 s yellow + 2 s all-red clearance)",
+  "stats": {
+   "n": 20,
+   "mean": 2.879999999999837,
+   "max": 10.699999999999406
+  }
+ },
+ {
+  "id": "T9",
+  "name": "Serial protocol: every emitted S-command matches the grammar understood by the firmware",
+  "result": "PASS",
+  "detail": "50 commands generated in 300 s, all well-formed"
+ }
+]

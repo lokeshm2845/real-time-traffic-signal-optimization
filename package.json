@@ -1,0 +1,15 @@
+{
+  "name": "traffic-signal-optimization",
+  "version": "1.0.0",
+  "description": "Adaptive traffic signal controller with browser simulator, console and ESP32 firmware",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node scripts/tests.js",
+    "benchmark": "node scripts/analysis.js"
+  },
+  "author": "Lokesh Magare"
+}

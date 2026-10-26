@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdaptiveSignal Control Console</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-mode="adaptive">
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="20" height="20" viewBox="0 0 20 20"><rect x="6.5" y="1" width="7" height="18" rx="3" fill="#0a0f18" stroke="#2dd4bf" stroke-width="1.4"/><circle cx="10" cy="5.5" r="1.7" fill="#f87171"/><circle cx="10" cy="10" r="1.7" fill="#fbbf24" opacity=".35"/><circle cx="10" cy="14.5" r="1.7" fill="#4ade80" opacity=".35"/></svg>
+    </div>
+    <div>
+      <div class="brand-title">AdaptiveSignal Control Console</div>
+      <div class="brand-sub">Real-time traffic signal optimization · simulation &amp; control</div>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="live">Live control</button>
+    <button class="tab-btn" data-tab="analytics">Analytics</button>
+    <button class="tab-btn" data-tab="bench">Benchmark</button>
+    <button class="tab-btn" data-tab="hw">Hardware link</button>
+  </nav>
+  <div class="top-status">
+    <span class="pill"><span class="dot on" id="runDot"></span><span id="runTxt">Running</span></span>
+    <span class="pill mono" id="clockPill">00:00:00</span>
+    <span class="pill"><span class="dot" id="hwDot"></span><span id="hwTxt">Virtual controller</span></span>
+  </div>
+</header>
+
+<main>
+<!-- =========================== LIVE =========================== -->
+<!-- =========================== LIVE =========================== -->
+<section class="tab active" id="tab-live">
+  <div class="live-grid">
+    <div>
+      <div class="card stage">
+        <div class="hud">
+          <span class="pill" id="hudMode">Adaptive</span>
+          <span class="pill" id="hudPhase"><span class="sig-dot G" id="hudDot"></span><span id="hudPhaseTxt">North-South green</span></span>
+          <span class="pill mono" id="hudTimer">0.0 s</span>
+          <span class="spacer"></span>
+          <span class="clock" id="hudClock">Sim time 00:00</span>
+        </div>
+        <div class="sim-wrap">
+          <canvas id="simCanvas"></canvas>
+          <div class="preempt-banner" id="preemptBanner">EMERGENCY PRE-EMPTION ACTIVE</div>
+          <div class="legend">
+            <span><i style="background:#8fb8ff"></i>Car</span>
+            <span><i style="background:#fbbf24;width:7px"></i>Two-wheeler</span>
+            <span><i style="background:#f59e0b;width:16px"></i>Bus / truck</span>
+            <span><i style="background:#fff;border:1px solid #f87171"></i>Ambulance</span>
+            <span><i style="background:#2dd4bf;height:2px"></i>IR beam (active)</span>
+          </div>
+        </div>
+      </div>
+      <div class="kpis" id="kpis">
+        <div class="card kpi"><div class="lbl">Avg delay</div><div class="val"><span id="kDelay">0.0</span><small>s/veh</small><span class="los" id="kLos">A</span></div><div class="foot">Since start · HCM LOS</div></div>
+        <div class="card kpi"><div class="lbl">Throughput</div><div class="val"><span id="kThr">0</span><small>veh/min</small></div><div class="foot">Last 60 s</div></div>
+        <div class="card kpi"><div class="lbl">Vehicles served</div><div class="val"><span id="kServed">0</span></div><div class="foot" id="kServedFoot">0 in system</div></div>
+        <div class="card kpi"><div class="lbl">Queue (sum)</div><div class="val"><span id="kQ">0</span><small>veh</small></div><div class="foot" id="kQFoot">Max 0</div></div>
+        <div class="card kpi"><div class="lbl">Stops / vehicle</div><div class="val"><span id="kStops">0.00</span></div><div class="foot">Mean over served</div></div>
+        <div class="card kpi"><div class="lbl">Idle CO₂ (est.)</div><div class="val"><span id="kCo2">0.0</span><small>kg</small></div><div class="foot">Assumed 0.8 L/h idle</div></div>
+      </div>
+      <div class="row2">
+        <div class="card">
+          <div class="card-h"><h3>Approach status</h3></div>
+          <div class="card-b" style="padding-top:6px">
+            <table class="tbl" id="apprTbl">
+              <thead><tr><th>Approach</th><th>Signal</th><th>Sensed</th><th>Queue</th><th>Wait</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <div class="note">“Sensed” is what the controller sees (entry minus exit beam counts). “Queue” is the ground truth used only for evaluation.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Simulation</h3></div>
+          <div class="card-b">
+            <div class="btn-row">
+              <button class="btn primary" id="playBtn">Pause</button>
+              <button class="btn" id="resetBtn">Reset</button>
+            </div>
+            <div class="seg" id="speedSeg" style="margin-top:10px">
+              <button data-s="1" class="active">1×</button><button data-s="2">2×</button><button data-s="5">5×</button><button data-s="10">10×</button><button data-s="30">30×</button>
+            </div>
+            <label class="chk"><input type="checkbox" id="showSens" checked> Show IR sensor beams</label>
+            <label class="chk"><input type="checkbox" id="showLbl" checked> Show approach labels</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <div class="card-h"><h3>Controller</h3></div>
+        <div class="card-b">
+          <div class="seg" id="modeSeg">
+            <button data-mode="fixed">Fixed-time</button>
+            <button data-mode="adaptive" class="active">Adaptive</button>
+            <button data-mode="manual">Manual</button>
+          </div>
+          <div class="mode-block mode-fixed">
+            <div class="field"><label>North-South green <b id="vFgNS">30 s</b></label><input type="range" id="fgNS" min="10" max="90" value="30"></div>
+            <div class="field"><label>East-West green <b id="vFgEW">30 s</b></label><input type="range" id="fgEW" min="10" max="90" value="30"></div>
+            <div class="note">Pre-timed plan. Ignores sensors: the same green split is repeated every cycle.</div>
+          </div>
+          <div class="mode-block mode-adaptive">
+            <div class="field"><label>Minimum green <b id="vMin">8 s</b></label><input type="range" id="minG" min="5" max="20" value="8"></div>
+            <div class="field"><label>Maximum green <b id="vMax">50 s</b></label><input type="range" id="maxG" min="20" max="90" value="50"></div>
+            <div class="note">Green is extended while vehicles keep arriving, and ends on gap-out or when the opposing demand score exceeds 1.3× the active score.</div>
+          </div>
+          <div class="mode-block mode-manual">
+            <div class="btn-row" style="margin-top:12px">
+              <button class="btn" id="mNS">NS green</button>
+              <button class="btn" id="mEW">EW green</button>
+              <button class="btn danger" id="mAR">All red</button>
+            </div>
+            <div class="note">Operator override. A 5 s minimum-green interlock and the yellow + all-red clearance are always enforced.</div>
+          </div>
+          <label class="chk"><input type="checkbox" id="preempt" checked> Emergency vehicle pre-emption</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h3>Traffic demand</h3></div>
+        <div class="card-b">
+          <select id="scenario"></select>
+          <div id="rateSliders"></div>
+          <div class="field" style="margin-top:14px">
+            <label>Dispatch ambulance from</label>
+            <div class="btn-row" id="ambBtns">
+              <button class="btn danger" data-a="N">N</button><button class="btn danger" data-a="E">E</button><button class="btn danger" data-a="S">S</button><button class="btn danger" data-a="W">W</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ========================= ANALYTICS ========================= -->
+<section class="tab" id="tab-analytics">
+  <div class="page-h">
+    <div>
+      <h2>Live analytics</h2>
+      <p>Time series recorded from the running simulation (last 10 minutes of simulated time). Use the fast-forward speeds on the Live control tab to fill the charts quickly.</p>
+    </div>
+    <div class="legend-inline" id="apprLegend"></div>
+  </div>
+  <div class="grid2">
+    <div class="card chart-card"><div class="card-h"><h3>Queue length per approach (veh)</h3></div><div class="card-b"><canvas id="chQueue"></canvas></div></div>
+    <div class="card chart-card"><div class="card-h"><h3>Rolling average delay, 60 s window (s/veh)</h3></div><div class="card-b"><canvas id="chDelay"></canvas></div></div>
+    <div class="card chart-card"><div class="card-h"><h3>Throughput (veh/min)</h3></div><div class="card-b"><canvas id="chThr"></canvas></div></div>
+    <div class="card chart-card"><div class="card-h"><h3>Signal timeline</h3></div><div class="card-b"><canvas id="chPhase"></canvas>
+      <div class="legend-inline"><span><i style="background:#4ade80"></i>North-South green</span><span><i style="background:#38bdf8"></i>East-West green</span><span><i style="background:#fbbf24"></i>Yellow</span><span><i style="background:#f87171"></i>All red</span></div></div></div>
+    <div class="card chart-card"><div class="card-h"><h3>Green time share</h3></div><div class="card-b"><canvas id="chSplit"></canvas></div></div>
+    <div class="card chart-card"><div class="card-h"><h3>Average delay by approach (s/veh)</h3></div><div class="card-b"><canvas id="chApprDelay"></canvas></div></div>
+  </div>
+</section>
+
+<!-- =========================== BENCH =========================== -->
+<section class="tab" id="tab-bench">
+  <div class="page-h">
+    <div>
+      <h2>Controller benchmark</h2>
+      <p>Each scenario is simulated for 30 minutes (first 2 minutes discarded as warm-up) with identical random traffic for every controller. Results are the mean over the chosen number of random seeds.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px"><div class="card-b">
+    <div class="bench-bar">
+      <label class="sub">Random seeds per cell</label>
+      <select id="benchSeeds"><option>3</option><option selected>5</option><option>10</option></select>
+      <button class="btn primary" id="benchRun">Run benchmark</button>
+      <div class="progress"><i id="benchProg"></i></div>
+      <span class="sub" id="benchMsg">Not run yet</span>
+    </div>
+  </div></div>
+  <div id="benchOut" style="display:none">
+    <div class="card" style="margin-bottom:16px"><div class="card-b">
+      <div class="chip-row" id="metricChips" style="margin-bottom:10px"></div>
+      <canvas id="chBench" style="width:100%;height:330px;display:block"></canvas>
+      <div class="legend-inline" id="benchLegend"></div>
+    </div></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Results table</h3></div><div class="card-b" style="overflow-x:auto"><table class="tbl" id="benchTbl"></table></div></div>
+    <div class="card"><div class="card-h"><h3>Emergency vehicle scenario</h3></div><div class="card-b" style="overflow-x:auto"><table class="tbl" id="ambTbl"></table></div></div>
+  </div>
+</section>
+
+<!-- ============================ HW ============================= -->
+<section class="tab" id="tab-hw">
+  <div class="page-h">
+    <div>
+      <h2>Hardware link</h2>
+      <p>The console drives (and listens to) the physical prototype over a USB serial port. With no board attached a virtual ESP32 echoes the protocol so the whole signal chain can be tested at the desk.</p>
+    </div>
+    <div class="btn-row" style="flex:none">
+      <button class="btn primary" id="hwConnect">Connect serial port</button>
+      <button class="btn" id="hwDisc" style="display:none">Disconnect</button>
+    </div>
+  </div>
+  <div class="hw-grid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card"><div class="card-h"><h3>Controller wiring (reference design)</h3></div><div class="card-b" id="hwSvgBox"></div></div>
+      <div class="card"><div class="card-h"><h3>Serial console</h3>
+        <span class="sub mono" id="hwBaud">115200 baud · 8N1</span></div><div class="card-b"><div class="console mono" id="console"></div>
+        <label class="chk"><input type="checkbox" id="hwUseSensors"> Use hardware sensor counts as controller input</label>
+      </div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card"><div class="card-h"><h3>Sensor readings</h3></div><div class="card-b" style="padding-top:6px">
+        <table class="tbl" id="hwSensTbl"><thead><tr><th>Approach</th><th>Stop · far beam</th><th>In</th><th>Out</th><th>Count</th></tr></thead><tbody></tbody></table>
+      </div></div>
+      <div class="card"><div class="card-h"><h3>Pin map</h3></div><div class="card-b" style="padding-top:6px"><table class="tbl" id="pinTbl"></table></div></div>
+      <div class="card"><div class="card-h"><h3>Serial protocol (115200, newline-terminated)</h3></div><div class="card-b proto">
+        <div><code>S,G,R,G,R</code> console → board: signal state for N, E, S, W (R / Y / G)</div>
+        <div><code>C,3,0,2,1</code> board → console: vehicles counted in each monitored zone</div>
+        <div><code>E,N</code> console → board: emergency vehicle detected on approach N</div>
+        <div><code>OK</code> board → console: acknowledgement of every command</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script src="js/sim.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
