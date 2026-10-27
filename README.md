@@ -6,6 +6,10 @@ Built for the hardware junction model of a B.Tech Design Experience II project (
 
 ![Live control console](docs/screenshots/01_live_adaptive.png)
 
+## Live demo
+
+Deployed on Vercel: <ADD-YOUR-VERCEL-URL-HERE> (the console runs entirely in the browser; the serial link works over HTTPS in Chrome or Edge).
+
 ## Quick start
 
 No install and no internet are needed.
@@ -75,6 +79,7 @@ Reference firmware: [`prototype/firmware/traffic_controller/traffic_controller.i
 ## Project layout
 
 ```
+vercel.json           Vercel config (serves prototype/ as a static site, no build step)
 prototype/            browser console, simulator and controllers (index.html, js/, css/), ESP32 firmware
 scripts/              benchmark + sensitivity runs (analysis.js), test suite (tests.js), stored results
 docs/                 screenshots and diagrams used in this README
